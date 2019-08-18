@@ -42,3 +42,40 @@ var isValid = function(s) {
     return bracket_stacks.length === 0 && i === s.length;
 };
 ```
+
+## R
+
+### [How JavaScript works: an overview of the engine, the runtime, and the call stack](https://blog.sessionstack.com/how-does-javascript-actually-work-part-1-b0bacc073cf)
+
+文章主要是对JavaScript的一些基本知识进行了概述，
+包括JavaScript引擎、运行时和调用栈。
+文章内容偏向基础，适合新手入门。
+
+#### JavaScript引擎
+
+谷歌是V8引擎是当前流行的引擎之一，
+被应用在Chrome浏览器和Node.js。
+
+V8的简化模型包括两个主要的组件：
+
+- Memory Heap，内存分配发生的地方
+- Call Stack，代码执行时堆栈帧的位置
+
+#### 运行时
+
+JavaScript开发者使用的Web API，比如DOM、AJAX、setTimeout等，
+这些API是由浏览器提供的，而不是引擎。
+
+#### 调用栈
+
+JavaScript是单线程语言，只有一个调用栈。
+调用栈是一种数据结构，记录程序执行的位置。
+
+#### 并发与事件循环
+
+当调用栈中的函数调用需要大量的时间处理时，就是导致线程阻塞，
+浏览器无法处理其他代码、无法渲染页面，
+最终引起页面崩溃。
+这样的体验显然是不好。
+
+解决方案就是**异步回调**。
