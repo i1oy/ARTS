@@ -79,3 +79,56 @@ JavaScript是单线程语言，只有一个调用栈。
 这样的体验显然是不好。
 
 解决方案就是**异步回调**。
+
+## T
+
+使用[Benchmark.js](https://benchmarkjs.com/)
+来做JavaScript函数的基准测试。
+
+在编码过程中，性能调优是一项基本工作；
+比较不同代码的执行速度，从而选出更优的执行方法。
+在这里可以使用Benchmark.js来做。
+
+在这里给出Node.js环境中的使用方法：
+
+1. 安装: `npm i --save benchmark`;
+2. 在Node中使用：
+
+```JavaScript
+var Benchmark = require('benchmark');
+var suite = new Benchmark.Suite;
+
+// add tests
+suite.add('parseInt', function() {
+    parseInt(1.2);
+  })
+  .add('Number.parseInt', function() {
+    Number.parseInt(1.2);
+  })
+  .add('~~', function() {
+    ~~1.2;
+  })
+  .add('|', function() {
+    1.2 | 0;
+  })
+  .add('Math', function () {
+    Math.round(1.2);
+  })
+  // add listeners
+  .on('cycle', function(event) {
+    console.log(String(event.target));
+  })
+  .on('complete', function() {
+    console.log('Fastest is ' + this.filter('fastest').map('name'));
+  })
+  // run async
+  .run({ 'async': true });
+// parseInt x 81,202,362 ops/sec ±3.42% (81 runs sampled)
+// Number.parseInt x 77,422,271 ops/sec ±3.87% (74 runs sampled)
+// ~~ x 99,086,694 ops/sec ±5.39% (71 runs sampled)
+// | x 104,459,787 ops/sec ±5.66% (72 runs sampled)
+// Math x 103,690,861 ops/sec ±4.84% (73 runs sampled)
+// Fastest is Math,|,~~
+// -----------------------------------
+// 测试结果以每秒执行代码的次数(ops/sec)表示
+```
