@@ -2,144 +2,95 @@
 
 ## A
 
-### [20. Valid Parentheses](https://leetcode.com/problems/valid-parentheses/)
+### [Merge Two Sorted Lists](https://leetcode.com/problems/merge-two-sorted-lists/)
 
-题目：给出一个仅包含`(,),[,],{,}`的字符串，按照规则检查这个字符串：
+题目：合并两个有序的链表，返回一个新的有序链表。
 
-- 各种类型的括号必须保持各自配对的关系；
-- 括号之间的配对要保持正确的顺序；
-
-思路：依此读取每个字符，遇到左侧括号压入到一个栈中，遇到右侧括号则与栈顶的括号进行匹配；
-如果配对成功，则出栈并继续遍历字符串；
-直到匹配失败或是遍历完成；
-当字符串遍历至最后一个字符且栈为空时，判定整个字符串符合要求。
+第一个版本的思路：比较两个链表当前位置数值的大小，取出较小节点的值加入到合并的链表中，
+并将较小节点的位置指向该链表的下一个节点；重复**比较->合并->向后移动**的操作，
+直至其中一个链表的节点指向null；
+最后将另一个链表剩余的节点加入到合并链表的尾部。
 
 ```JavaScript
 /**
- * @param {string} s
- * @return {boolean}
+ * Definition for singly-linked list.
+ * function ListNode(val) {
+ *     this.val = val;
+ *     this.next = null;
+ * }
  */
-var isValid = function(s) {
-    if (s.length % 2 === 1) return false;
-    const left = '([{';
-    const right = ')]}';
-    var bracket_stacks = [], i = 0;
-
-    for (i = 0; i < s.length; i++) {
-        const element = s[i];
-        if (left.includes(element)) {
-            bracket_stacks.push(element);
-        } else if (right.includes(element)) {
-            const index = right.indexOf(element);
-            const stacks_length = bracket_stacks.length;
-            if ( stacks_length > 0 && bracket_stacks[stacks_length - 1] === left[index] ) {
-                bracket_stacks.pop()
-            } else {
-                break;
-            }
+/**
+ * @param {ListNode} l1
+ * @param {ListNode} l2
+ * @return {ListNode}
+ */
+var mergeTwoLists = function(l1, l2) {
+    let mergeList = null, curPos = null;
+    while (l1 !== null && l2 !== null) {
+        let minimum;
+        if (l1.val < l2.val) {
+            minimum = l1.val;
+            l1 = l1.next;
+        } else {
+            minimum = l2.val;
+            l2 = l2.next;
+        }
+        if (curPos === null) {
+            curPos = new ListNode(minimum);
+            mergeList = curPos;
+        } else {
+            curPos.next = new ListNode(minimum);
+            curPos = curPos.next;
         }
     }
-    return bracket_stacks.length === 0 && i === s.length;
+    let tail = l1 || l2;
+    while (tail !== null) {
+        if (curPos === null) {
+            curPos = new ListNode(tail.val);
+            mergeList = curPos;
+        } else {
+            curPos.next = new ListNode(tail.val);
+            curPos = curPos.next;
+        }
+        tail = tail.next;
+    }
+    return mergeList;
+};
+```
+
+在上述解法中，每次合并的时候会创建一个新的节点，这一操作是没有必要的；
+另外一个问题是由于无法得知原链表中哪一个节点会是合并后的第一个节点，
+在遍历的过程中，增加了一次当前待合并的节点是否是首个合并节点的判断。
+
+改进版思路：
+
+1. 直接取原来链表中的节点加入到合并链表中；
+2. 在合并链表中插入一个默认的首节点，最后返回结果的时候则跳过合并链表的首节点。
+
+```JavaScript
+var mergeTwoLists = function(l1, l2) {
+    if (!l1 || !l2) {
+        return l1 === null ? l2 : l1;
+    }
+
+    let mergeList = {val: -1, next: null}, curPos = mergeList;
+    while (l1 !== null && l2 !== null) {
+        if (l1.val < l2.val) {
+            curPos.next = l1;
+            l1 = l1.next;
+        } else {
+            curPos.next = l2;
+            l2 = l2.next;
+        }
+        curPos = curPos.next;
+    }
+    let tail = l1 || l2;
+    curPos.next = tail;
+
+    return mergeList.next;
 };
 ```
 
 ## R
 
-### [How JavaScript works: an overview of the engine, the runtime, and the call stack](https://blog.sessionstack.com/how-does-javascript-actually-work-part-1-b0bacc073cf)
-
-文章主要是对JavaScript的一些基本知识进行了概述，
-包括JavaScript引擎、运行时和调用栈。
-文章内容偏向基础，适合新手入门。
-
-#### JavaScript引擎
-
-谷歌是V8引擎是当前流行的引擎之一，
-被应用在Chrome浏览器和Node.js。
-
-V8的简化模型包括两个主要的组件：
-
-- Memory Heap，内存分配发生的地方
-- Call Stack，代码执行时堆栈帧的位置
-
-#### 运行时
-
-JavaScript开发者使用的Web API，比如DOM、AJAX、setTimeout等，
-这些API是由浏览器提供的，而不是引擎。
-
-#### 调用栈
-
-JavaScript是单线程语言，只有一个调用栈。
-调用栈是一种数据结构，记录程序执行的位置。
-
-#### 并发与事件循环
-
-当调用栈中的函数调用需要大量的时间处理时，就是导致线程阻塞，
-浏览器无法处理其他代码、无法渲染页面，
-最终引起页面崩溃。
-这样的体验显然是不好。
-
-解决方案就是**异步回调**。
-
-## T
-
-使用[Benchmark.js](https://benchmarkjs.com/)
-来做JavaScript函数的基准测试。
-
-在编码过程中，性能调优是一项基本工作；
-比较不同代码的执行速度，从而选出更优的执行方法。
-在这里可以使用Benchmark.js来做。
-
-在这里给出Node.js环境中的使用方法：
-
-1. 安装: `npm i --save benchmark`;
-2. 在Node中使用：
-
-```JavaScript
-var Benchmark = require('benchmark');
-var suite = new Benchmark.Suite;
-
-// add tests
-suite.add('parseInt', function() {
-    parseInt(1.2);
-  })
-  .add('Number.parseInt', function() {
-    Number.parseInt(1.2);
-  })
-  .add('~~', function() {
-    ~~1.2;
-  })
-  .add('|', function() {
-    1.2 | 0;
-  })
-  .add('Math', function () {
-    Math.round(1.2);
-  })
-  // add listeners
-  .on('cycle', function(event) {
-    console.log(String(event.target));
-  })
-  .on('complete', function() {
-    console.log('Fastest is ' + this.filter('fastest').map('name'));
-  })
-  // run async
-  .run({ 'async': true });
-// parseInt x 81,202,362 ops/sec ±3.42% (81 runs sampled)
-// Number.parseInt x 77,422,271 ops/sec ±3.87% (74 runs sampled)
-// ~~ x 99,086,694 ops/sec ±5.39% (71 runs sampled)
-// | x 104,459,787 ops/sec ±5.66% (72 runs sampled)
-// Math x 103,690,861 ops/sec ±4.84% (73 runs sampled)
-// Fastest is Math,|,~~
-// -----------------------------------
-// 测试结果以每秒执行代码的次数(ops/sec)表示
-```
-
-## S
-
-看MacTalk公众号文章——最值得投资的事情是什么。
-如今，面对这个问题，下意识地反应就是投资自己。
-  
-  个人的健康、能力、认知，就是一项项值得投资的产品。
-
-反正以个人的经历，当自己所拥有的资源是有限的时候，投资自己是收益最大的。
-工作至今，一直在努力着，当然做得还不够好，这是需要反思的。
-想到一句话，以此自勉：日拱一卒，功不唐捐。
+### [How JavaScript works: inside the V8 engine + 5 tips on how to write optimized code](https://blog.sessionstack.com/how-javascript-works-inside-the-v8-engine-5-tips-on-how-to-write-optimized-code-ac089e62b12e)
