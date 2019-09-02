@@ -97,7 +97,7 @@ var mergeTwoLists = function(l1, l2) {
 
 本文聚焦于深入理解谷歌 V8 引擎的内部原理。
 
-### 概述
+#### 概述
 
 JavaScript 引擎是执行 JavaScript 代码的程序或解析器。
 JavaScript 引擎可以是标准的解析器，或者是将 JavaScript 编译成某种形式字节码的 JIT 编译器。
@@ -114,7 +114,7 @@ JavaScript 引擎可以是标准的解析器，或者是将 JavaScript 编译成
 - Nashorn，开源代码，作为 OpenJDK 的一部分
 - JerryScrip，主要用于IoT的轻量级引擎
 
-### 为什么要创建 V8 引擎
+#### 为什么要创建 V8 引擎
 
 V8 引擎不仅用在了 Chrome 浏览器之中，
 同时也被做为 Node.js 运行时。
@@ -125,7 +125,7 @@ V8 最初的设计目的是为了提供 JavaScript 代码在浏览器中的执�
 V8 通过实现一个 JIT 编译器将 JavaScript 代码转换成机器码。
 其中最大的区别是 V8 不产生字节码或任何的中间代码。
 
-### V8 曾经有两个编译器
+#### V8 曾经有两个编译器
 
 在版本5.9之前， V8 引擎使用了两个编译器
 
@@ -146,12 +146,12 @@ V8 引擎内部使用了多个线程
 引擎将 JavaScript 的抽象语法书转换成名为 Hydrogen 的高级静态单赋值形式，
 并尝试优化 Hydrogen 图。大多数的优化在这一层级完成。
 
-### 内联
+#### 内联
 
 将被调用函数的函数体替换到调用位置，称之为内联。
 这个简单的操作使得后续优化更有意义。
 
-### 隐藏类
+#### 隐藏类
 
 JavaScript 是基于原型的语言：没有类的概念，对象的创建是通过克隆过程实现的。
 同时 JavaScript 也是动态编程语言，这意味着在实例化后，
@@ -190,7 +190,7 @@ V8 会创建一个隐藏类 `C0`。
 
 尽量使用相同的顺序来初始化属性，这样隐藏类就能够被重复利用，提交效率。
 
-### 内联缓存
+#### 内联缓存
 
 V8 使用了**内联缓存**技术来优化动态类型语言。
 内联缓存依赖于观察到的现象：对同一个方法的重复调用往往会发生在相同类型的对象。
@@ -205,18 +205,18 @@ V8 引擎就会忽略对隐藏类的查找而是直接通过在对象指针上�
 该方法将来所有的调用， V8 引擎都会假设隐藏类不会发生变化，
 直接使用属性的偏移量从内存地址获取指定的属性。
 
-### 编译到机器码
+#### 编译到机器码
 
 一旦 Hydrogen 图被优化，Crankshaft 将其转换为 Lithium 的较低级别表示。
 大多数 Lithium 的实现都是针对架构的。
 寄存器分配发生在这一级。
 
-### 垃圾回收
+#### 垃圾回收
 
 V8 使用传统的标记-清理的方法来进行垃圾回收。
 为了控制垃圾回收的成本、使得代码执行更稳定， V8 使用增量标记的方式。
 
-### Ignition and TurboFan
+#### Ignition and TurboFan
 
 在 2017 年的早些时候，伴随着 V8 5.9 的发布，引入了新的执行管道。
 新的管道取得了更优的性能提升和显著的内存节省。
@@ -225,7 +225,7 @@ V8 使用传统的标记-清理的方法来进行垃圾回收。
 
 自 V8 5.9 发布后， full-codegen 和 Crankshaft 就不再使用。
 
-### 如何编写更优的代码
+#### 如何编写更优的代码
 
 1. 使用相同的顺序实例化对象属性；
 2. 避免动态添加属性，在构造函数中分配所有的属性；
@@ -238,3 +238,90 @@ V8 使用传统的标记-清理的方法来进行垃圾回收。
     如果一个数字值大于 31 位，那么 V8 将对它装箱，
     将其换成 double 类型，并创建一个新的对象来存放这个数值。
     因此，尽可能使用 31 位带符号的数值，避免昂贵的装箱操作。
+
+## T
+
+### 如何对 JavaScript 进行类型检查
+
+实现对 JavaScript 代码类型检查，最直接的方法是引入 TypeScript。
+但是引入 TypeScript 是有一定的成本。
+
+另一方案是，使用 Visual Studio Code 编辑器，
+结合 JSDoc 和 TS 的定义文件(即 `d.ts` 结尾的文件)
+实现对代码的类型检查。
+
+其中， JSDoc 是 API 文档生成器，能够根据代码中的注释自动生成文档；
+使用 JSDoc 语法描述代码时，VS Code 会自动识别其中的类型信息。
+TS 的定义文件是专门用来进行类型定义的；
+通过定义文件，可以声明全局的类型，并且可以对类型进行操作，产生新的类型。
+
+#### 1. 在 VS Code 中开启类型检查功能
+
+在项目的根目录下创建 `jsconfig.json` 文件,
+设置 `checkJs` 开启类型检查；
+设置 `exclude` 排除不需要检查的文件；
+设置 `include` 将原本不会被检查的文件纳入检查；
+
+```JSON
+{
+    "compilerOptions": {
+        "checkJs": true
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}
+```
+
+#### 2. 使用 JSDoc 添加代码注释
+
+```JavaScript
+/**
+ * add
+ * @param {number} a number a
+ * @param {number} b number b
+ */
+function add(a, b) {
+    return a + b;
+}
+
+// 添加变量类型定义
+/** @type {number} */
+let ax = 1;
+
+add(ax, 2);
+
+// 定义结构化数据
+/**
+ * @typedef Point
+ * @property {number} x
+ * @property {number} y
+ */
+
+ /** @type {Point} */
+let point = {
+    x: 1,
+    y: 9
+};
+```
+
+#### 3. 使用 TS 定义文件声明结构化数据
+
+JSDoc 定义结构化的数据略显繁琐，建议使用 `d.ts` 来声明。
+定义文件具有更加灵活的类型声明方式，
+例如，扩展类型(extends)、组合类型(aType|bType)、
+声明枚举类型(keyof cType)、使用 `Exclude` 筛选类型等。
+
+```TypeScript
+export interface nodeType {
+    a: number;
+    b: number;
+}
+```
+
+```JavaScript
+import { nodeType } from "../types/index";
+
+/** @type {nodeType} */
+let node;
+```
